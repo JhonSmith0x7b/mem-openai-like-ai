@@ -8,8 +8,9 @@ from typing import List, Dict
 from memory import Mem0Helper
 from util import utils
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.info("Starting YuKiNo API...")
 
 MODEL = os.environ.get("OPENAI_MODEL")
 
@@ -28,8 +29,7 @@ class YuKiNoAPI(ls.LitAPI):
         inputs = self.inject_memory(inputs)
         result = self.model.chat.completions.create(
             model=MODEL, messages=inputs, stream=False)
-        self.mem0Helper.add_memory(
-            list(filter(lambda inp: inp['role'] != 'system', inputs))[-3:])
+        self.mem0Helper.add_memory(inputs)
         yield result.choices[0].message.content
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:

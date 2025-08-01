@@ -2,10 +2,12 @@
 from mem0 import Memory
 from openai import OpenAI
 import os
+from typing import Dict, List
 
 
 DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID")
 MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT"))
+MEMORY_ADD_LIMIT = int(os.environ.get("MEMORY_ADD_LIMIT"))
 
 
 class Mem0Helper():
@@ -39,5 +41,6 @@ class Mem0Helper():
             f"- {entry['memory']}" for entry in relevant_memories["results"])
         return memories_str
 
-    def add_memory(self, messages: list, user_id: str = DEFAULT_USER_ID):
-        self.memory.add(messages, user_id=user_id)
+    def add_memory(self, messages: List[Dict[str, str]], user_id: str = DEFAULT_USER_ID):
+        messages = list(filter(lambda inp: inp['role'] != 'system', messages))
+        self.memory.add(messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
