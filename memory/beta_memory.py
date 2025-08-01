@@ -8,6 +8,7 @@ from typing import Dict, List
 DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID")
 MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT"))
 MEMORY_ADD_LIMIT = int(os.environ.get("MEMORY_ADD_LIMIT"))
+MEMORY_MODEL = os.environ.get("MEMORY_MODEL")
 
 
 class Mem0Helper():
@@ -27,6 +28,12 @@ class Mem0Helper():
                 "provider": "openai",
                 "config": {
                     "model": "text-embedding-3-large"
+                }
+            },
+            "llm": {
+                "provider": "openai",
+                "config": {
+                    "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini"
                 }
             }
         }
