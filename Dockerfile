@@ -6,6 +6,8 @@ WORKDIR /app
 
 # Set the working directory
 ADD . /app
+
+RUN rm -f /app/.env
 # Copy the requirements file and install dependencies
 
 RUN uv sync --locked --no-dev

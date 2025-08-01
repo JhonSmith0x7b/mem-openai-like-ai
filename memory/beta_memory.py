@@ -5,6 +5,7 @@ import os
 
 
 DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID")
+MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT"))
 
 
 class Mem0Helper():
@@ -31,7 +32,7 @@ class Mem0Helper():
 
     def try_get_memories(self, message: str, user_id: str = DEFAULT_USER_ID) -> str:
         relevant_memories = self.memory.search(
-            query=message, user_id=user_id, limit=3)
+            query=message, user_id=user_id, limit=MEMORY_HISTORY_LIMIT)
         if len(relevant_memories) == 0:
             return None
         memories_str = "\n".join(

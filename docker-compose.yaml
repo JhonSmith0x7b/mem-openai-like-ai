@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   litserve:
-    image: mem-openai-like-ai:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,6 +9,8 @@ services:
       - "8086:8086"
     depends_on:
       - postgres
+    volumes:
+      - ./.env:/app/.env:ro
   postgres:
     image: pgvector/pgvector:0.8.0-pg17-bookworm
     environment:
