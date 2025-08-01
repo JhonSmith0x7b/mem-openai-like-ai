@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  litserve:
+    image: mem-openai-like-ai:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    depends_on:
+      - postgres
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg17-bookworm
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectordb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

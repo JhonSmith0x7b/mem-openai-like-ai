@@ -1,0 +1,13 @@
+[project]
+name = "mem-openai-like-ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dotenv>=0.9.9",
+    "httpx[socks]>=0.28.1",
+    "litserve==0.2.14",
+    "mem0ai>=0.1.115",
+    "psycopg2-binary>=2.9.10",
+]
