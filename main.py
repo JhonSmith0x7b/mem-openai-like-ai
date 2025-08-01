@@ -7,6 +7,8 @@ from openai import OpenAI
 from typing import List, Dict
 from memory import Mem0Helper
 from util import utils
+import logging
+logging.basicConfig(level=logging.INFO)
 
 
 MODEL = os.environ.get("OPENAI_MODEL")
@@ -18,7 +20,7 @@ class YuKiNoAPI(ls.LitAPI):
         self.mem0Helper = Mem0Helper()
 
     def decode_request(self, request):
-        print(request)
+        logging.info(f"Received request: {request}")
         return request.messages
 
     def predict(self, inputs: List[ChatMessage], context):
@@ -33,7 +35,7 @@ class YuKiNoAPI(ls.LitAPI):
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
         user_last_message = inputs[-1]['content']
         memory = self.mem0Helper.try_get_memories(user_last_message)
-        print(memory)
+        logging.info(f"Retrieved memory: {memory}")
         if memory == None:
             return inputs
         memory = f"\n**有关用户的记忆**:\n {memory}"
