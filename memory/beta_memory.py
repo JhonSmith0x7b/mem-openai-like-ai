@@ -27,7 +27,8 @@ class Mem0Helper():
             "embedder": {
                 "provider": "openai",
                 "config": {
-                    "model": "text-embedding-3-large"
+                    "model": os.environ.get("EMBEDDER_MODEL"),
+                    "api_key": os.environ.get("EMBEDDER_API_KEY"),
                 }
             },
             "llm": {
