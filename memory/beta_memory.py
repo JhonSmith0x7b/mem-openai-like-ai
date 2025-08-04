@@ -29,6 +29,7 @@ class Mem0Helper():
                 "config": {
                     "model": os.environ.get("EMBEDDER_MODEL"),
                     "api_key": os.environ.get("EMBEDDER_API_KEY"),
+                    "openai_base_url": os.environ.get("EMBEDDER_BASE_URL"),
                 }
             },
             "llm": {
