@@ -7,6 +7,7 @@ from openai import OpenAI
 from typing import List, Dict
 from memory import Mem0Helper
 from util import utils
+import asyncio
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -15,22 +16,32 @@ logging.info("Starting YuKiNo API...")
 MODEL = os.environ.get("OPENAI_MODEL")
 
 
+class PredictCallback(ls.Callback):
+    
+    def on_after_predict(self, lit_api: 'YuKiNoAPI'):
+        if lit_api.inputs:
+            lit_api.mem0Helper.add_memory(lit_api.inputs)
+            lit_api.inputs = False
+
+
 class YuKiNoAPI(ls.LitAPI):
+    
     def setup(self, device):
         self.model = OpenAI()
-        self.mem0Helper = Mem0Helper()
+        self.mem0Helper = Mem0Helper.create()
+        self.inputs = False
 
     def decode_request(self, request):
         logging.info(f"Received request: {request}")
         return request.messages
-
+    
     def predict(self, inputs: List[ChatMessage], context):
         inputs = utils.convert_openai_message_to_dict_message(inputs)
         inputs = self.inject_memory(inputs)
-        result = self.model.chat.completions.create(
-            model=MODEL, messages=inputs, stream=False)
-        self.mem0Helper.add_memory(inputs)
-        yield result.choices[0].message.content
+        self.inputs = inputs
+        for chunck in self.model.chat.completions.create(
+            model=MODEL, messages=inputs, stream=True):
+            yield chunck.choices[0].delta.content
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
         user_last_message = inputs[-1]['content']
@@ -49,5 +60,5 @@ class YuKiNoAPI(ls.LitAPI):
 
 
 if __name__ == "__main__":
-    server = ls.LitServer(YuKiNoAPI(spec=ls.OpenAISpec()))
+    server = ls.LitServer(YuKiNoAPI(spec=ls.OpenAISpec(), enable_async=False, stream=True), callbacks=[PredictCallback()])
     server.run(host="0.0.0.0", port=8086, generate_client_file=False)

@@ -1,6 +1,5 @@
 
 from mem0 import Memory
-from openai import OpenAI
 import os
 from typing import Dict, List
 
@@ -13,7 +12,11 @@ MEMORY_MODEL = os.environ.get("MEMORY_MODEL")
 
 class Mem0Helper():
 
-    def __init__(self):
+    def __init__(self, memory: Memory):
+        self.memory = memory
+    
+    @classmethod
+    def create(cls) -> 'Mem0Helper':
         config = {
             "vector_store": {
                 "provider": "pgvector",
@@ -39,7 +42,8 @@ class Mem0Helper():
                 }
             }
         }
-        self.memory = Memory.from_config(config_dict=config)
+        memory = Memory.from_config(config_dict=config)
+        return cls(memory)
 
     def try_get_memories(self, message: str, user_id: str = DEFAULT_USER_ID) -> str:
         relevant_memories = self.memory.search(
