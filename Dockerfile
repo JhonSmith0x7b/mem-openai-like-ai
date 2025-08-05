@@ -10,6 +10,8 @@ ADD . /app
 RUN rm -f /app/.env
 # Copy the requirements file and install dependencies
 
+RUN mkdir -p ~/.pip && echo -e "[global]\ntrusted-host = mirrors.ivolces.com" > ~/.pip/pip.conf
+
 RUN uv sync --locked --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
