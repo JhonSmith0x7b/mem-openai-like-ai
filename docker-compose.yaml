@@ -8,7 +8,6 @@ services:
     restart: always
     depends_on:
       - postgres
-      - neo4j
     volumes:
       - ./.env:/app/.env:ro
   postgres:
