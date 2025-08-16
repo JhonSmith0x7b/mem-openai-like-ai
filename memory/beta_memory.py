@@ -41,14 +41,14 @@ class Mem0Helper():
                     "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini"
                 }
             },
-            "graph_store": {
-                "provider": "neo4j",
-                "config": {
-                    "url": os.environ.get("NEO4J_URL"),
-                    "username": os.environ.get("NEO4J_USERNAME"),
-                    "password": os.environ.get("NEO4J_PASSWORD")
-                }
-            }
+            # "graph_store": {
+            #     "provider": "neo4j",
+            #     "config": {
+            #         "url": os.environ.get("NEO4J_URL"),
+            #         "username": os.environ.get("NEO4J_USERNAME"),
+            #         "password": os.environ.get("NEO4J_PASSWORD")
+            #     }
+            # }
         }
         memory = Memory.from_config(config_dict=config)
         return cls(memory)

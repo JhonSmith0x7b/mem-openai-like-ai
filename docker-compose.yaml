@@ -27,21 +27,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  neo4j:
-    image: neo4j:5.26.10
-    volumes:
-      - ./neo4j-data:/data:rw
-      - ./neo4j-import:/import:rw
-      - ./neo4j-conf:/conf:rw
-    restart: always
-    environment:
-      - NEO4J_AUTH=neo4j/neo4jneo4j
-    ports:
-      - 7687:7687
-      - 7474:7474
-    healthcheck:
-      test: ["CMD-SHELL", "cypher-shell", "match (n) return count(n)"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+  # neo4j:
+  #   image: neo4j:5.26.10
+  #   volumes:
+  #     - ./neo4j-data:/data:rw
+  #     - ./neo4j-import:/import:rw
+  #     - ./neo4j-conf:/conf:rw
+  #   restart: always
+  #   environment:
+  #     - NEO4J_AUTH=neo4j/neo4jneo4j
+  #   ports:
+  #     - 7687:7687
+  #     - 7474:7474
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "cypher-shell", "match (n) return count(n)"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 10s
