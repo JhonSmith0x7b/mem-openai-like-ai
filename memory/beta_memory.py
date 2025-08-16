@@ -8,6 +8,7 @@ DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID")
 MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT"))
 MEMORY_ADD_LIMIT = int(os.environ.get("MEMORY_ADD_LIMIT"))
 MEMORY_MODEL = os.environ.get("MEMORY_MODEL")
+GRAPH_ON = os.environ.get("GRAPH_ON", "false").lower() == "true"
 
 
 class Mem0Helper():
@@ -41,15 +42,17 @@ class Mem0Helper():
                     "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini"
                 }
             },
-            # "graph_store": {
-            #     "provider": "neo4j",
-            #     "config": {
-            #         "url": os.environ.get("NEO4J_URL"),
-            #         "username": os.environ.get("NEO4J_USERNAME"),
-            #         "password": os.environ.get("NEO4J_PASSWORD")
-            #     }
-            # }
         }
+        if GRAPH_ON:
+            config["graph_store"] = {
+                "provider": "neo4j",
+                "config": {
+                    "url": os.environ.get("NEO4J_URL"),
+                    "username": os.environ.get("NEO4J_USERNAME"),
+                    "password": os.environ.get("NEO4J_PASSWORD")
+                }
+            }
+        print(config)
         memory = Memory.from_config(config_dict=config)
         return cls(memory)
 
