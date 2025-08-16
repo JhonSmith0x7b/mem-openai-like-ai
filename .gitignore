@@ -11,3 +11,4 @@ wheels/
 .env
 .vscode
 postgres-data/
+neo4j-*/

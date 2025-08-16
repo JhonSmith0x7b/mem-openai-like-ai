@@ -8,6 +8,6 @@ dependencies = [
     "dotenv>=0.9.9",
     "httpx[socks]>=0.28.1",
     "litserve==0.2.14",
-    "mem0ai>=0.1.115",
+    "mem0ai[graph]>=0.1.115",
     "psycopg2-binary>=2.9.10",
 ]

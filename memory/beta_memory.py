@@ -14,7 +14,7 @@ class Mem0Helper():
 
     def __init__(self, memory: Memory):
         self.memory = memory
-    
+
     @classmethod
     def create(cls) -> 'Mem0Helper':
         config = {
@@ -39,6 +39,14 @@ class Mem0Helper():
                 "provider": "openai",
                 "config": {
                     "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini"
+                }
+            },
+            "graph_store": {
+                "provider": "neo4j",
+                "config": {
+                    "url": os.environ.get("NEO4J_URL"),
+                    "username": os.environ.get("NEO4J_USERNAME"),
+                    "password": os.environ.get("NEO4J_PASSWORD")
                 }
             }
         }
