@@ -52,7 +52,6 @@ class Mem0Helper():
                     "password": os.environ.get("NEO4J_PASSWORD")
                 }
             }
-        print(config)
         memory = Memory.from_config(config_dict=config)
         return cls(memory)
 
