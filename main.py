@@ -32,9 +32,11 @@ class YuKiNoAPI(ls.LitAPI):
         self.model = OpenAI()
         self.mem0Helper = Mem0Helper.create()
         self.inputs = False
+        self.model_name = MODEL
 
     def decode_request(self, request):
         logging.info(f"Received request: {request}")
+        self.model_name = request.model if request.model != None else MODEL
         return request.messages
 
     def predict(self, inputs: List[ChatMessage], context):
@@ -42,7 +44,7 @@ class YuKiNoAPI(ls.LitAPI):
         inputs = self.inject_memory(inputs)
         self.inputs = inputs
         for chunck in self.model.chat.completions.create(
-                model=MODEL, messages=inputs, stream=True):
+                model=self.model_name, messages=inputs, stream=True):
             yield chunck.choices[0].delta.content
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
