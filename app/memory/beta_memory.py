@@ -61,7 +61,7 @@ class Mem0Helper():
             query=message, user_id=user_id, limit=MEMORY_HISTORY_LIMIT)
         if len(relevant_memories) == 0:
             return None
-        memories_str = f"\n- 有关 {user_id} 的记忆: |\n"
+        memories_str = f"\n记忆部分: \n  说明: 这些记忆用户可能已经遗忘, 提起时要有适当提示.\n  有关 {user_id} 的记忆: |\n"
         memories_str += "\n".join(
             f"  {entry['memory']}" for entry in relevant_memories["results"])
         return memories_str
