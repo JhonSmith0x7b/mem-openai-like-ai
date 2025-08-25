@@ -61,7 +61,7 @@ class Mem0Helper():
         if len(relevant_memories) == 0:
             return None
         memories_str = "\n".join(
-            f"- {entry['memory']}" for entry in relevant_memories["results"])
+            f"  {entry['memory']}" for entry in relevant_memories["results"])
         return memories_str
 
     def add_memory(self, messages: List[Dict[str, str]], user_id: str = DEFAULT_USER_ID):

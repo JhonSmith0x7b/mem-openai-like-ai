@@ -53,7 +53,7 @@ class YuKiNoAPI(ls.LitAPI):
         logging.info(f"Retrieved memory: {memory}")
         if memory == None:
             return inputs
-        memory = f"\n**有关用户的记忆**:\n {memory}"
+        memory = f"\n---\n有关用户的记忆: |\n {memory}"
         for inp in inputs:
             if inp['role'] == "system":
                 inp['content'] += memory
