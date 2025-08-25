@@ -1,20 +1,15 @@
 FROM python:3.10-bullseye
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+WORKDIR /mem-openai-like-ai
 
-WORKDIR /app
+RUN mkdir -p ~/.pip && echo "[global]\ntrusted-host = mirrors.ivolces.com" > ~/.pip/pip.conf
 
 # Set the working directory
-ADD . /app
+ADD requirements.txt /mem-openai-like-ai/requirements.txt
 
-RUN rm -f /app/.env
-# Copy the requirements file and install dependencies
+RUN pip install -r /mem-openai-like-ai/requirements.txt
 
-RUN mkdir -p ~/.pip && echo -e "[global]\ntrusted-host = mirrors.ivolces.com" > ~/.pip/pip.conf
-
-RUN uv sync --locked --no-dev
-
-ENV PATH="/app/.venv/bin:$PATH"
+ADD . /mem-openai-like-ai
 
 # Set the default command to run the application
-CMD ["python", "main.py"]
+CMD ["python", "app/main.py"]
