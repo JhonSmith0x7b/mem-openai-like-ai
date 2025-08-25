@@ -7,6 +7,7 @@ from openai import OpenAI
 from typing import List, Dict
 from memory import Mem0Helper
 from util import utils
+import copy
 import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,8 +26,9 @@ class PredictCallback(ls.Callback):
 
     def on_after_predict(self, lit_api: 'YuKiNoAPI'):
         if lit_api.inputs:
-            lit_api.mem0Helper.add_memory(lit_api.inputs)
+            temp = copy.deepcopy(lit_api.inputs)
             lit_api.inputs = False
+            lit_api.mem0Helper.add_memory(temp)
 
 
 class YuKiNoAPI(ls.LitAPI):
@@ -52,10 +54,13 @@ class YuKiNoAPI(ls.LitAPI):
         inputs = utils.convert_openai_message_to_dict_message(inputs)
         inputs = self.inject_memory(inputs)
         self.inputs = inputs
-        for chunck in self.model.chat.completions.create(
-                model=self.model_name, messages=inputs, stream=True,
-                temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty):
-            yield chunck.choices[0].delta.content
+        try:
+            for chunck in self.model.chat.completions.create(
+                    model=self.model_name, messages=inputs, stream=True,
+                    temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty):
+                yield chunck.choices[0].delta.content
+        except Exception as e:
+            yield f"ERROR {e}"
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
         user_last_message = inputs[-1]['content']

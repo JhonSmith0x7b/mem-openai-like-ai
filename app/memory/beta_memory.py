@@ -64,16 +64,8 @@ class Mem0Helper():
         memories_str = f"\n- 有关 {user_id} 的记忆: |\n"
         memories_str += "\n".join(
             f"  {entry['memory']}" for entry in relevant_memories["results"])
-        relevant_assistant_memories = self.memory.search(
-            query=message, user_id=DEFAULT_ASSISTANT_ID, limit=MEMORY_HISTORY_LIMIT)
-        if len(relevant_assistant_memories) > 0:
-            memories_str += f"\n- 有关 {DEFAULT_ASSISTANT_ID} 的记忆: |\n"
-            memories_str += "\n".join(
-                f"  {entry['memory']}" for entry in relevant_assistant_memories["results"])
         return memories_str
 
     def add_memory(self, messages: List[Dict[str, str]], user_id: str = DEFAULT_USER_ID):
-        user_messages = list(filter(lambda inp: inp['role'] == 'user', messages))
-        assistant_messages = list(filter(lambda inp: inp['role'] == 'assistant', messages))
-        self.memory.add(user_messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
-        if len(assistant_messages) > 0: self.memory.add(assistant_messages[-MEMORY_ADD_LIMIT:], user_id=DEFAULT_ASSISTANT_ID)
+        messages = list(filter(lambda inp: inp['role'] != 'system', messages))
+        self.memory.add(messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
