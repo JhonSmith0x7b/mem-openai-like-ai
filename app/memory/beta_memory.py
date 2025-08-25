@@ -76,4 +76,4 @@ class Mem0Helper():
         user_messages = list(filter(lambda inp: inp['role'] == 'user', messages))
         assistant_messages = list(filter(lambda inp: inp['role'] == 'assistant', messages))
         self.memory.add(user_messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
-        self.memory.add(assistant_messages[-MEMORY_ADD_LIMIT:], user_id=DEFAULT_ASSISTANT_ID)
+        if len(assistant_messages) > 0: self.memory.add(assistant_messages[-MEMORY_ADD_LIMIT:], user_id=DEFAULT_ASSISTANT_ID)
