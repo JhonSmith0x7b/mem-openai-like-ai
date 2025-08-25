@@ -5,6 +5,7 @@ from typing import Dict, List
 
 
 DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID")
+DEFAULT_ASSISTANT_ID = os.environ.get("DEFAULT_ASSISTANT_ID")
 MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT"))
 MEMORY_ADD_LIMIT = int(os.environ.get("MEMORY_ADD_LIMIT"))
 MEMORY_MODEL = os.environ.get("MEMORY_MODEL")
@@ -60,10 +61,17 @@ class Mem0Helper():
             query=message, user_id=user_id, limit=MEMORY_HISTORY_LIMIT)
         if len(relevant_memories) == 0:
             return None
-        memories_str = "\n".join(
+        memories_str = f"\n- 有关 {user_id} 的记忆: |\n".join(
             f"  {entry['memory']}" for entry in relevant_memories["results"])
+        relevant_assistant_memories = self.memory.search(
+            query=message, user_id=DEFAULT_ASSISTANT_ID, limit=MEMORY_HISTORY_LIMIT)
+        if len(relevant_assistant_memories) > 0:
+            memories_str = f"\n- 有关 {DEFAULT_ASSISTANT_ID} 的记忆: |\n".join(
+                f"  {entry['memory']}" for entry in relevant_assistant_memories["results"])
         return memories_str
 
     def add_memory(self, messages: List[Dict[str, str]], user_id: str = DEFAULT_USER_ID):
-        messages = list(filter(lambda inp: inp['role'] != 'system', messages))
-        self.memory.add(messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
+        user_messages = list(filter(lambda inp: inp['role'] == 'user', messages))
+        assistant_messages = list(filter(lambda inp: inp['role'] == 'assistant', messages))
+        self.memory.add(user_messages[-MEMORY_ADD_LIMIT:], user_id=user_id)
+        self.memory.add(assistant_messages[-MEMORY_ADD_LIMIT:], user_id=DEFAULT_ASSISTANT_ID)

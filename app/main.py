@@ -60,13 +60,12 @@ class YuKiNoAPI(ls.LitAPI):
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
         user_last_message = inputs[-1]['content']
         memory = self.mem0Helper.try_get_memories(user_last_message)
-        logging.info(f"Retrieved memory: {memory}")
         if memory == None:
             return inputs
-        memory = f"\n---\n有关用户的记忆: |\n {memory}"
         for inp in inputs:
             if inp['role'] == "system":
                 inp['content'] += memory
+                logging.info(f"Injected memory into system prompt. \n{inp}")
                 return inputs
         inputs.insert(
             0, {'role': "system", 'content': f"你是个非常有用的AI, 你需要根据有关用户的记忆进行适当的回答 {memory}"})
