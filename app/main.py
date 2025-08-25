@@ -14,6 +14,9 @@ logging.basicConfig(level=logging.INFO,
 logging.info("Starting YuKiNo API...")
 
 MODEL = os.environ.get("OPENAI_MODEL")
+TEMPERATURE = 0.7
+TOP_P = 1.0
+PRESENCE_PENALTY = 0.0
 
 PER_DEVICE_WORKER = int(os.environ.get("LITSERVE_PER_DEVICE_WORKER"))
 
@@ -33,10 +36,17 @@ class YuKiNoAPI(ls.LitAPI):
         self.mem0Helper = Mem0Helper.create()
         self.inputs = False
         self.model_name = MODEL
+        self.temperature = TEMPERATURE
+        self.top_p = TOP_P
+        self.presence_penalty = PRESENCE_PENALTY
+        
 
     def decode_request(self, request):
         logging.info(f"Received request: {request}")
         self.model_name = request.model if request.model != None else MODEL
+        self.temperature = request.temperature if request.temperature != None else TEMPERATURE
+        self.top_p = request.top_p if request.top_p != None else TOP_P
+        self.presence_penalty = request.presence_penalty if request.presence_penalty != None else PRESENCE_PENALTY
         return request.messages
 
     def predict(self, inputs: List[ChatMessage], context):
