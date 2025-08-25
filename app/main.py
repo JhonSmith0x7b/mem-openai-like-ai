@@ -39,7 +39,6 @@ class YuKiNoAPI(ls.LitAPI):
         self.temperature = TEMPERATURE
         self.top_p = TOP_P
         self.presence_penalty = PRESENCE_PENALTY
-        
 
     def decode_request(self, request):
         logging.info(f"Received request: {request}")
@@ -54,7 +53,8 @@ class YuKiNoAPI(ls.LitAPI):
         inputs = self.inject_memory(inputs)
         self.inputs = inputs
         for chunck in self.model.chat.completions.create(
-                model=self.model_name, messages=inputs, stream=True):
+                model=self.model_name, messages=inputs, stream=True,
+                temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty):
             yield chunck.choices[0].delta.content
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
