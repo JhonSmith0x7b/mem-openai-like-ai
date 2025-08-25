@@ -61,12 +61,13 @@ class Mem0Helper():
             query=message, user_id=user_id, limit=MEMORY_HISTORY_LIMIT)
         if len(relevant_memories) == 0:
             return None
-        memories_str = f"\n- 有关 {user_id} 的记忆: |\n".join(
+        memories_str = ""
+        memories_str += f"\n- 有关 {user_id} 的记忆: |\n".join(
             f"  {entry['memory']}" for entry in relevant_memories["results"])
         relevant_assistant_memories = self.memory.search(
             query=message, user_id=DEFAULT_ASSISTANT_ID, limit=MEMORY_HISTORY_LIMIT)
         if len(relevant_assistant_memories) > 0:
-            memories_str = f"\n- 有关 {DEFAULT_ASSISTANT_ID} 的记忆: |\n".join(
+            memories_str += f"\n- 有关 {DEFAULT_ASSISTANT_ID} 的记忆: |\n".join(
                 f"  {entry['memory']}" for entry in relevant_assistant_memories["results"])
         return memories_str
 
