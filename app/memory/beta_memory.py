@@ -64,7 +64,7 @@ class Mem0Helper():
         memories_str = f"\n<记忆部分>\n有关 {user_id} 的记忆\n"
         memories_str += "\n".join(
             f"- \"{entry['memory']}\"" for entry in relevant_memories["results"])
-        memories_str = memories_str + f"]\n</记忆部分>\n"
+        memories_str = memories_str + f"\n</记忆部分>\n"
         return memories_str
 
     def add_memory(self, messages: List[Dict[str, str]], user_id: str = DEFAULT_USER_ID):
