@@ -14,12 +14,12 @@ logging.basicConfig(level=logging.INFO,
 
 logging.info("Starting YuKiNo API...")
 
-MODEL = os.environ.get("OPENAI_MODEL")
+MODEL = os.environ.get("OPENAI_MODEL", "deepseek-chat")
 TEMPERATURE = 0.7
 TOP_P = 1.0
 PRESENCE_PENALTY = 0.0
 
-PER_DEVICE_WORKER = int(os.environ.get("LITSERVE_PER_DEVICE_WORKER"))
+PER_DEVICE_WORKER = int(os.environ.get("LITSERVE_PER_DEVICE_WORKER", 2))
 
 
 class PredictCallback(ls.Callback):
@@ -27,7 +27,7 @@ class PredictCallback(ls.Callback):
     def on_after_predict(self, lit_api: 'YuKiNoAPI'):
         if lit_api.inputs:
             temp = copy.deepcopy(lit_api.inputs)
-            lit_api.inputs = False
+            lit_api.inputs = None
             lit_api.mem0Helper.add_memory(temp)
 
 
@@ -36,7 +36,7 @@ class YuKiNoAPI(ls.LitAPI):
     def setup(self, device):
         self.model = OpenAI()
         self.mem0Helper = Mem0Helper.create()
-        self.inputs = False
+        self.inputs = None
         self.model_name = MODEL
         self.temperature = TEMPERATURE
         self.top_p = TOP_P
@@ -51,18 +51,18 @@ class YuKiNoAPI(ls.LitAPI):
         return request.messages
 
     def predict(self, inputs: List[ChatMessage], context):
-        inputs = utils.convert_openai_message_to_dict_message(inputs)
-        inputs = self.inject_memory(inputs)
-        self.inputs = inputs
+        converted_inputs = utils.convert_openai_message_to_dict_message(inputs)
+        converted_inputs = self.inject_memory(converted_inputs)
+        self.inputs = converted_inputs
         try:
             for chunck in self.model.chat.completions.create(
-                    model=self.model_name, messages=inputs, stream=True,
+                    model=self.model_name, messages=converted_inputs, stream=True, # type: ignore
                     temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty):
                 yield chunck.choices[0].delta.content
         except Exception as e:
             yield f"ERROR {e}"
 
-    def inject_memory(self, inputs: List[Dict[str, str]]) -> List[ChatMessage]:
+    def inject_memory(self, inputs: List[Dict[str, str]]) -> List[Dict[str, str]]:
         user_last_message = inputs[-1]['content']
         memory = self.mem0Helper.try_get_memories(user_last_message)
         if memory == None:
