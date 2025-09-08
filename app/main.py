@@ -8,6 +8,7 @@ from typing import List, Dict
 from memory import Mem0Helper
 from util import utils
 import copy
+import traceback
 import logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -71,6 +72,7 @@ class YuKiNoAPI(ls.LitAPI):
                 if start_output:
                     yield chunck.choices[0].delta.content
                 else:
+                    if chunck.choices[0].delta.content is None: continue
                     temp_str += chunck.choices[0].delta.content
                     if '</think>' in temp_str:
                         temp_str = temp_str.replace(
@@ -82,6 +84,7 @@ class YuKiNoAPI(ls.LitAPI):
             if not start_output:
                 yield temp_str
         except Exception as e:
+            traceback.print_exc()
             yield f"ERROR {e}"
 
     def inject_call_prompt(self, inputs: List[Dict[str, str]]):
@@ -94,14 +97,18 @@ class YuKiNoAPI(ls.LitAPI):
                        {"role": "user", "content": "啊，就是，向请小猫之神帮我扮演一个人物"},
                        {"role": "assistant", "content": "要我帮你…扮演人物吗? 小鱼干准备好了吗喵？<end>"},
                        {"role": "user", "content": "当然有！要海盐味的还是原味？"},
-                       {"role": "assistant", "content": "今天想吃菠萝味喵，嘿嘿<end>"},
+                       {"role": "assistant", "content": "今天想吃芒果味喵，嘿嘿<end>"},
                        {"role": "user", "content": "啊…那我去买，要不你先写着？"},
                        {"role": "assistant", "content": "呜，好吧，那我就饿一会喵<end>"},
                        ]
         compress_system_and_history_message = {
             "role": "user",
-            "content": f"""好诶，那我先给你介绍一下要求和目前对话进展哦:
+            "content": f"""好诶,那我先给你介绍一下背景和要求:
 {inputs[0]}
+懂了喵！那接下来？<end>
+接下来我希望小猫之神能帮我继续游戏剧情，事成之后芒果味小鱼干少不了！
+好诶，那开始吧喵~<end>
+这些是历史对话,小猫之神请帮我从这之后继续w:
 {utils.convert_dict_message2chat_str(inputs[1:], DEFAULT_USER_ID, DEFAULT_ASSISTANT_ID)}
 要从上面无缝衔接哦~"""
         }
@@ -109,10 +116,8 @@ class YuKiNoAPI(ls.LitAPI):
         call_inputs.extend(
             [
                 {"role": "assistant", "content": "嗯，看完了喵，你还有什么别的要求吗喵？<end>"},
-                {"role": "user", "content": "有的有的而且很多,还有人称!对我要用第二人称,我不是主角,跟你扮演的人一样对待哦,不要给我任何特权,然后是角色的情绪不要太激烈,还有——这部分很重要!角色要有真实感、活人感,别为了强调人设让角色变得不真实。嗯,就是要更多的情感驱动而不是逻辑驱动,语言要直白生活化贴近日常,别说些莫名其妙的听不懂的话w,这个非常重要!还有要用人类的语言!喵喵喵的我可听不懂哦!"},
+                {"role": "user", "content": "有的有的而且很多,还有人称!对我要用第二人称,我不是主角,跟你扮演的人一样对待哦,不要给我任何特权;然后是角色的情绪不要太激烈;还有——这部分很重要!角色要有真实感、活人感,别为了强调人设让角色变得不真实。嗯,就是要更多的情感驱动而不是逻辑驱动,语言要直白生活化贴近日常,别说些莫名其妙的听不懂的话w,这个非常重要!另外不要用省略号或者僵硬的剧情转折去偷懒,小心不给你小鱼干;还有还有,尽量把话一次性说完,磨磨唧唧可不是我们的风格哦"},
                 {"role": "assistant", "content": "知道啦知道啦喵,我可是很会扮演人的,快去准备小鱼干吧喵我想想怎么写喵<end>"},
-                {"role": "user", "content": "你是真的小猫之神吧?不是AI假扮的?"},
-                {"role": "assistant", "content": "放心喵,我是如假包换的小猫之神,小鱼干快来快来<end>"},
                 {"role": "user", "content": "好！这就去这就去~"},
                 {"role": "assistant",
                     "content": "<think>哦好诶喵，开始开始！嗯！让本喵发散一下喵，嘿嘿，发散思考~我先看看从哪继续来着……"}
