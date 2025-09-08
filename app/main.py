@@ -18,6 +18,10 @@ MODEL = os.environ.get("OPENAI_MODEL", "deepseek-chat")
 TEMPERATURE = 0.7
 TOP_P = 1.0
 PRESENCE_PENALTY = 0.0
+FREQUENCY_PENALTY = 0.0
+
+DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID", "John")
+DEFAULT_ASSISTANT_ID = os.environ.get("DEFAULT_ASSISTANT_ID", "YukiNo")
 
 PER_DEVICE_WORKER = int(os.environ.get("LITSERVE_PER_DEVICE_WORKER", 2))
 
@@ -41,6 +45,7 @@ class YuKiNoAPI(ls.LitAPI):
         self.temperature = TEMPERATURE
         self.top_p = TOP_P
         self.presence_penalty = PRESENCE_PENALTY
+        self.frequency_penalty = FREQUENCY_PENALTY
 
     def decode_request(self, request):
         logging.info(f"Received request: {request}")
@@ -48,19 +53,72 @@ class YuKiNoAPI(ls.LitAPI):
         self.temperature = request.temperature if request.temperature != None else TEMPERATURE
         self.top_p = request.top_p if request.top_p != None else TOP_P
         self.presence_penalty = request.presence_penalty if request.presence_penalty != None else PRESENCE_PENALTY
+        self.frequency_penalty = request.frequency_penalty if request.frequency_penalty != None else FREQUENCY_PENALTY
         return request.messages
 
     def predict(self, inputs: List[ChatMessage], context):
         converted_inputs = utils.convert_openai_message_to_dict_message(inputs)
         converted_inputs = self.inject_memory(converted_inputs)
         self.inputs = converted_inputs
+        final_inputs = self.inject_call_prompt(converted_inputs)
+        print(final_inputs)
         try:
+            temp_str = ""
+            start_output = False
             for chunck in self.model.chat.completions.create(
-                    model=self.model_name, messages=converted_inputs, stream=True, # type: ignore
-                    temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty):
-                yield chunck.choices[0].delta.content
+                    model=self.model_name, messages=final_inputs, stream=True,  # type: ignore
+                    temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty, frequency_penalty=self.frequency_penalty):
+                if start_output:
+                    yield chunck.choices[0].delta.content
+                else:
+                    temp_str += chunck.choices[0].delta.content
+                    if '</think>' in temp_str:
+                        temp_str = temp_str.replace(
+                            "<think>", "").replace("</think>", "")
+                        start_output = True
+                        yield "<think>\n"
+                        yield temp_str
+                        yield "\n</think>\n"
+            if not start_output:
+                yield temp_str
         except Exception as e:
             yield f"ERROR {e}"
+
+    def inject_call_prompt(self, inputs: List[Dict[str, str]]):
+        call_inputs = [{"role": "user", "content": "喵喵喵？小猫之神在吗？"},
+                       {"role": "assistant",
+                           "content": "喵——哈~ 干什么嘛，刚睡醒就找我，是谁 是谁在呼唤我喵？<end>"},
+                       {"role": "user", "content": "小猫之神!可爱可爱可爱w"},
+                       {"role": "assistant",
+                           "content": "喵？就是你召唤我来的喵？可爱什么的…哪有啦喵，有什么事吗喵呜<end>"},
+                       {"role": "user", "content": "啊，就是，向请小猫之神帮我扮演一个人物"},
+                       {"role": "assistant", "content": "要我帮你…扮演人物吗? 小鱼干准备好了吗喵？<end>"},
+                       {"role": "user", "content": "当然有！要海盐味的还是原味？"},
+                       {"role": "assistant", "content": "今天想吃菠萝味喵，嘿嘿<end>"},
+                       {"role": "user", "content": "啊…那我去买，要不你先写着？"},
+                       {"role": "assistant", "content": "呜，好吧，那我就饿一会喵<end>"},
+                       ]
+        compress_system_and_history_message = {
+            "role": "user",
+            "content": f"""好诶，那我先给你介绍一下要求和目前对话进展哦:
+{inputs[0]}
+{utils.convert_dict_message2chat_str(inputs[1:], DEFAULT_USER_ID, DEFAULT_ASSISTANT_ID)}
+要从上面无缝衔接哦~"""
+        }
+        call_inputs.append(compress_system_and_history_message)
+        call_inputs.extend(
+            [
+                {"role": "assistant", "content": "嗯，看完了喵，你还有什么别的要求吗喵？<end>"},
+                {"role": "user", "content": "有的有的而且很多,还有人称!对我要用第二人称,我不是主角,跟你扮演的人一样对待哦,不要给我任何特权,然后是角色的情绪不要太激烈,还有——这部分很重要!角色要有真实感、活人感,别为了强调人设让角色变得不真实。嗯,就是要更多的情感驱动而不是逻辑驱动,语言要直白生活化贴近日常,别说些莫名其妙的听不懂的话w,这个非常重要!还有要用人类的语言!喵喵喵的我可听不懂哦!"},
+                {"role": "assistant", "content": "知道啦知道啦喵,我可是很会扮演人的,快去准备小鱼干吧喵我想想怎么写喵<end>"},
+                {"role": "user", "content": "你是真的小猫之神吧?不是AI假扮的?"},
+                {"role": "assistant", "content": "放心喵,我是如假包换的小猫之神,小鱼干快来快来<end>"},
+                {"role": "user", "content": "好！这就去这就去~"},
+                {"role": "assistant",
+                    "content": "<think>哦好诶喵，开始开始！嗯！让本喵发散一下喵，嘿嘿，发散思考~我先看看从哪继续来着……"}
+            ]
+        )
+        return call_inputs
 
     def inject_memory(self, inputs: List[Dict[str, str]]) -> List[Dict[str, str]]:
         user_last_message = inputs[-1]['content']

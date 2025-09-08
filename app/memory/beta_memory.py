@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 
 DEFAULT_USER_ID = os.environ.get("DEFAULT_USER_ID", "John")
-DEFAULT_ASSISTANT_ID = os.environ.get("DEFAULT_ASSISTANT_ID")
+DEFAULT_ASSISTANT_ID = os.environ.get("DEFAULT_ASSISTANT_ID", "YukiNo")
 MEMORY_HISTORY_LIMIT = int(os.environ.get("MEMORY_HISTORY_LIMIT", 10))
 MEMORY_ADD_LIMIT = int(os.environ.get("MEMORY_ADD_LIMIT", 5))
 MEMORY_MODEL = os.environ.get("MEMORY_MODEL")
