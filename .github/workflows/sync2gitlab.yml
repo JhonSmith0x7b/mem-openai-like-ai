@@ -19,5 +19,5 @@ jobs:
         env:
           GITLAB_URL: ${{ secrets.GITLAB_URL }}
         run: |
-          git remote set-url origin ${GITLAB_URL}
+          git remote set-url gitlab ${GITLAB_URL}
           git push --force gitlab HEAD:main
