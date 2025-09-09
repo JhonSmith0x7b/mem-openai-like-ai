@@ -62,7 +62,7 @@ class YuKiNoAPI(ls.LitAPI):
         converted_inputs = self.inject_memory(converted_inputs)
         self.inputs = converted_inputs
         final_inputs = self.inject_call_prompt(converted_inputs)
-        print(final_inputs)
+        logging.info(f"final inputs {final_inputs}")
         try:
             temp_str = ""
             start_output = False
@@ -133,7 +133,7 @@ class YuKiNoAPI(ls.LitAPI):
         for inp in inputs:
             if inp['role'] == "system":
                 inp['content'] += memory
-                logging.info(f"Injected memory into system prompt. \n{inp}")
+                logging.info(f"Injected memory into system prompt: {inp}")
                 return inputs
         inputs.insert(
             0, {'role': "system", 'content': f"你是个非常有用的AI, 你需要根据有关用户的记忆进行适当的回答 {memory}"})
