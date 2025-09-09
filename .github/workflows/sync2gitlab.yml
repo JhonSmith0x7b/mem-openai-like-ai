@@ -13,6 +13,8 @@ jobs:
       # 检出 GitHub 仓库代码
       - name: Checkout GitHub repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
 
       # 将代码推送到 GitLab
       - name: Push to GitLab
