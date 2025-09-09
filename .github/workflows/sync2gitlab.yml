@@ -18,7 +18,6 @@ jobs:
       - name: Push to GitLab
         env:
           GITLAB_URL: ${{ secrets.GITLAB_URL }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          git remote add gitlab https://${GITLAB_TOKEN}@${GITLAB_URL#https://}
+          git remote set-url origin ${GITLAB_URL}
           git push --force gitlab HEAD:main
