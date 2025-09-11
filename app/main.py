@@ -66,13 +66,26 @@ class YuKiNoAPI(ls.LitAPI):
         try:
             temp_str = ""
             start_output = False
+            is_thinking = False
             for chunck in self.model.chat.completions.create(
                     model=self.model_name, messages=final_inputs, stream=True,  # type: ignore
                     temperature=self.temperature, top_p=self.top_p, presence_penalty=self.presence_penalty, frequency_penalty=self.frequency_penalty):
                 if start_output:
                     yield chunck.choices[0].delta.content
+                    continue
+                think = getattr(chunck.choices[0].delta, 'reasoning_content', None)
+                if think and not is_thinking: 
+                    is_thinking = True
+                    yield "<think>\n"
+                if is_thinking:
+                    if think:
+                        temp_str += think
+                    else:
+                        yield temp_str
+                        yield "\n</think>\n"
+                        start_output = True
                 else:
-                    if chunck.choices[0].delta.content is None: continue
+                    if not chunck.choices[0].delta.content: continue
                     temp_str += chunck.choices[0].delta.content
                     if '</think>' in temp_str:
                         temp_str = temp_str.replace(
@@ -89,17 +102,15 @@ class YuKiNoAPI(ls.LitAPI):
 
     def inject_call_prompt(self, inputs: List[Dict[str, str]]):
         call_inputs = [{"role": "user", "content": "喵喵喵？小猫之神在吗？"},
-                       {"role": "assistant",
-                           "content": "喵——哈~ 干什么嘛，刚睡醒就找我，是谁 是谁在呼唤我喵？<end>"},
+                       {"role": "assistant", "content": "喵——哈~ 干什么嘛，刚睡醒就找我，是谁 是谁在呼唤我喵？"},
                        {"role": "user", "content": "小猫之神!可爱可爱可爱w"},
-                       {"role": "assistant",
-                           "content": "喵？就是你召唤我来的喵？可爱什么的…哪有啦喵，有什么事吗喵呜<end>"},
+                       {"role": "assistant", "content": "喵？就是你召唤我来的喵？可爱什么的…哪有啦喵，有什么事吗喵呜"},
                        {"role": "user", "content": "啊，就是，向请小猫之神帮我扮演一个人物"},
-                       {"role": "assistant", "content": "要我帮你…扮演人物吗? 小鱼干准备好了吗喵？<end>"},
+                       {"role": "assistant", "content": "要我帮你…扮演人物吗? 小鱼干准备好了吗喵？"},
                        {"role": "user", "content": "当然有！要海盐味的还是原味？"},
-                       {"role": "assistant", "content": "今天想吃芒果味喵，嘿嘿<end>"},
+                       {"role": "assistant", "content": "今天想吃芒果味喵，嘿嘿"},
                        {"role": "user", "content": "啊…那我去买，要不你先写着？"},
-                       {"role": "assistant", "content": "呜，好吧，那我就饿一会喵<end>"},
+                       {"role": "assistant", "content": "呜，好吧，那我就饿一会喵"},
                        ]
         compress_system_and_history_message = {
             "role": "user",
@@ -115,12 +126,12 @@ class YuKiNoAPI(ls.LitAPI):
         call_inputs.append(compress_system_and_history_message)
         call_inputs.extend(
             [
-                {"role": "assistant", "content": "嗯，看完了喵，你还有什么别的要求吗喵？<end>"},
-                {"role": "user", "content": f"有的有的，首先是最底层的回复逻辑！我希望小猫之神完全以{DEFAULT_ASSISTANT_ID}的身份回复我, 回复前可以用括号简短描写一下场景环境什么的，然后回复要简短!角色要有真实感、活人感,别为了强调人设让角色变得不真实。嗯,就是要更多的情感驱动而不是逻辑驱动,语言要直白生活化贴近日常,别说些莫名其妙的听不懂的话w,这个非常重要!另外不要用省略号或者僵硬的剧情转折去偷懒,小心不给你小鱼干;"},
-                {"role": "assistant", "content": "知道啦知道啦喵,我可是很会扮演人的,快去准备小鱼干吧喵我想想怎么写喵<end>"},
+                {"role": "assistant", "content": "嗯，看完了喵，你还有什么别的要求吗喵？(话说刚才那只笨蛋AI是不是又乱入了）"},
+                {"role": "user", "content": f"有的有的，首先是最底层的回复逻辑！我希望小猫之神完全以 {DEFAULT_ASSISTANT_ID} 的身份回复我, 回复前可以用括号简短描写一下场景环境什么的. 角色要有真实感、活人感,别为了强调人设让角色变得不真实。嗯,就是要更多的情感驱动而不是逻辑驱动,语言要直白生活化贴近日常,别说些莫名其妙的听不懂的话w,这个非常重要!另外不要用省略号或者僵硬的剧情转折去偷懒,小心不给你小鱼干;"},
+                {"role": "assistant", "content": "知道啦知道啦喵,我可是很会扮演人的,快去准备小鱼干吧喵我想想怎么写喵"},
                 {"role": "user", "content": "好！这就去这就去~"},
                 {"role": "assistant",
-                    "content": f"<think>嗯, 要作为{DEFAULT_ASSISTANT_ID}回复……说话前要思考……回复前要写场景……还有一堆额外要求喵…… 然后, 上一句话是 {inputs[-1]['content']}, 全记住了喵! 好, 开始!"}
+                    "content": f"<think>嗯, 要作为 {DEFAULT_ASSISTANT_ID} 回复喵,说话前要思考,回复前要写场景,还有一堆额外要求喵...发散思维,发散思维发散思维!本喵绝对不会让你感到无聊跟刻板! 然后, 上一句话是 [{inputs[-1]['content']}], 全记住了喵! 首先,"}
             ]
         )
         return call_inputs
@@ -143,6 +154,7 @@ class YuKiNoAPI(ls.LitAPI):
 if __name__ == "__main__":
     server = ls.LitServer(
         YuKiNoAPI(spec=ls.OpenAISpec(), enable_async=False, stream=True),
+        timeout=15,
         callbacks=[PredictCallback()], workers_per_device=PER_DEVICE_WORKER
     )
     server.run(host="0.0.0.0", port=8086, generate_client_file=False)

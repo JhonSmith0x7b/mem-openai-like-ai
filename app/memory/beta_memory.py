@@ -40,7 +40,9 @@ class Mem0Helper():
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini"
+                    "model": MEMORY_MODEL if MEMORY_MODEL else "gpt-4o-mini",
+                    "api_key": os.environ.get("MEMORY_API_KEY"),
+                    "openai_base_url": os.environ.get("MEMORY_BASE_URL"),
                 }
             },
         }
